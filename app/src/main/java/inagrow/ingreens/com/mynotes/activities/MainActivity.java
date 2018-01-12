@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.BottomSheetDialog;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -20,6 +21,7 @@ import inagrow.ingreens.com.mynotes.apis.DbInterface;
 import inagrow.ingreens.com.mynotes.models.Note;
 import inagrow.ingreens.com.mynotes.models.User;
 import inagrow.ingreens.com.mynotes.utils.AllKeys;
+import inagrow.ingreens.com.mynotes.watchers.EditTextWatcher;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -71,11 +73,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private boolean validate(EditText etName, EditText etEmail, EditText etPassword, EditText etRePassword ){
+
+        etName.addTextChangedListener(new EditTextWatcher(etName));
+        etEmail.addTextChangedListener(new EditTextWatcher(etEmail));
+        etPassword.addTextChangedListener(new EditTextWatcher(etPassword));
+        etRePassword.addTextChangedListener(new EditTextWatcher(etRePassword));
+
+        if(TextUtils.isEmpty(etName.getText().toString())){
+            TextInputLayout textInputLayout=(TextInputLayout) etName.getParent().getParent();
+            textInputLayout.setError("Name can't be empty.");
+            etName.requestFocus();
+            Toast.makeText(getApplicationContext(),"Name can't be empty !", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if(TextUtils.isEmpty(etEmail.getText().toString())){
+            TextInputLayout textInputLayout=(TextInputLayout) etEmail.getParent().getParent();
+            textInputLayout.setError("Email can't be empty.");
+            etEmail.requestFocus();
+            Toast.makeText(getApplicationContext(),"Email can't be empty !", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if(TextUtils.isEmpty(etPassword.getText().toString())){
+            TextInputLayout textInputLayout=(TextInputLayout) etPassword.getParent().getParent();
+            textInputLayout.setError("Password can't be empty.");
+            etPassword.requestFocus();
+            Toast.makeText(getApplicationContext(),"Password can't be empty !", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if(!etPassword.getText().toString().equals(etRePassword.getText().toString())){
+            TextInputLayout textInputLayout=(TextInputLayout) etRePassword.getParent().getParent();
+            textInputLayout.setError("Password is not same.");
+            etRePassword.requestFocus();
+            Toast.makeText(getApplicationContext(),"Password is not same !", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
+    }
+
     private void signUp(){
         final BottomSheetDialog bottomSheetDialog=new BottomSheetDialog(MainActivity.this);
         View parentView=getLayoutInflater().inflate(R.layout.dialog_signup,null);
         bottomSheetDialog.setContentView(parentView);
-        BottomSheetBehavior bottomSheetBehavior=BottomSheetBehavior.from((View)parentView.getParent());
+
         bottomSheetDialog.show();
         Button btnSignUp=parentView.findViewById(R.id.btnSignUp);
         Button btnCancel=parentView.findViewById(R.id.btnCancel);
@@ -91,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String email=etEmail.getText().toString();
                 String pass=etPass1.getText().toString();
                 String repass=etPass2.getText().toString();
-                if(!TextUtils.isEmpty(name) && !TextUtils.isEmpty(email) && !TextUtils.isEmpty(pass) && pass.equals(repass)){
+                if(validate(etName,etEmail,etPass1,etPass2)){
                     User user=new User();
                     user.setName(name);
                     user.setEmail(email);
@@ -103,9 +146,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     else{
                         Toast.makeText(getApplicationContext(),"Failed to register !", Toast.LENGTH_SHORT).show();
                     }
-                }
-                else{
-                    Toast.makeText(getApplicationContext(),"Fill data properly !", Toast.LENGTH_SHORT).show();
                 }
             }
         });
