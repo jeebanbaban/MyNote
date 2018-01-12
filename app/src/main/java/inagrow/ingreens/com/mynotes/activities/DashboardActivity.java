@@ -66,8 +66,6 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         final BottomSheetDialog bottomSheetDialog=new BottomSheetDialog(DashboardActivity.this);
         View parentView=getLayoutInflater().inflate(R.layout.dialog_add_note,null);
         bottomSheetDialog.setContentView(parentView);
-        BottomSheetBehavior bottomSheetBehavior=BottomSheetBehavior.from((View)parentView.getParent());
-//                bottomSheetBehavior.setPeekHeight((int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,400,getResources().getDisplayMetrics()));
         bottomSheetDialog.show();
         Button btnAdd=parentView.findViewById(R.id.btnAdd);
         Button btnCancel=parentView.findViewById(R.id.btnCancel);
