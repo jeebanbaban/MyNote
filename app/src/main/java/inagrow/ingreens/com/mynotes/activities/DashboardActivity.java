@@ -4,10 +4,12 @@ import android.content.SharedPreferences;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.BottomSheetDialog;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -19,6 +21,7 @@ import inagrow.ingreens.com.mynotes.apis.DbInterface;
 import inagrow.ingreens.com.mynotes.models.Note;
 import inagrow.ingreens.com.mynotes.models.User;
 import inagrow.ingreens.com.mynotes.utils.AllKeys;
+import inagrow.ingreens.com.mynotes.watchers.EditTextWatcher;
 
 public class DashboardActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -79,13 +82,14 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
                 note.setTitle(etTitle.getText().toString());
                 note.setBody(etBody.getText().toString());
                 note.setUser_id(user.getId());
-                if(db.insertNote(note)){
-                    bottomSheetDialog.dismiss();
-                    Toast.makeText(getApplicationContext(),"Note added !", Toast.LENGTH_SHORT).show();
-                    loadList();
-                }
-                else{
-                    Toast.makeText(getApplicationContext(),"Note can't create !", Toast.LENGTH_SHORT).show();
+                if(validate(etTitle)) {
+                    if (db.insertNote(note)) {
+                        bottomSheetDialog.dismiss();
+                        Toast.makeText(getApplicationContext(), "Note added !", Toast.LENGTH_SHORT).show();
+                        loadList();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Note can't create !", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         });
@@ -96,5 +100,19 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
                 bottomSheetDialog.dismiss();
             }
         });
+    }
+
+    private boolean validate(EditText etTitle){
+
+        etTitle.addTextChangedListener(new EditTextWatcher(etTitle));
+
+        if(TextUtils.isEmpty(etTitle.getText().toString())){
+            TextInputLayout textInputLayout=(TextInputLayout) etTitle.getParent().getParent();
+            textInputLayout.setError("Title can't be empty.");
+            etTitle.requestFocus();
+            Toast.makeText(getApplicationContext(),"Title can't be empty !", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
     }
 }
