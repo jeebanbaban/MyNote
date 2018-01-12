@@ -4,44 +4,61 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="10dp">
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:text="Add Note"
         android:textSize="20dp"
-        android:textStyle="bold"
-        android:text="Add Note"/>
-    <EditText
-        android:id="@+id/etTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Title"
-        android:singleLine="true"
-        android:lines="1"/>
+        android:textStyle="bold" />
 
-    <EditText
-        android:id="@+id/etBody"
+    <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Body"
-        android:singleLine="false"
-        android:gravity="left|top"
-        android:lines="5"/>
+        android:theme="@style/TextInputLayoutLabel">
+
+        <EditText
+            android:id="@+id/etTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Title"
+            android:lines="1"
+            android:singleLine="true" />
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/TextInputLayoutLabel">
+
+        <EditText
+            android:id="@+id/etBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="left|top"
+            android:hint="Body"
+            android:lines="5"
+            android:singleLine="false" />
+    </android.support.design.widget.TextInputLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="right">
+
         <Button
             android:id="@+id/btnAdd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="right"
-            android:text="Add"/>
+            android:text="Add" />
+
         <Button
             android:id="@+id/btnCancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="right"
-            android:text="Cancel"/>
+            android:text="Cancel" />
     </LinearLayout>
 
 </LinearLayout>

@@ -25,7 +25,7 @@ public class MyDbms extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE IF NOT EXISTS "+AllKeys.DB_TBL_USER+"(" +
                 AllKeys.DB_TBL_USER_ID+" integer primary key autoincrement, " +
                 AllKeys.DB_TBL_USER_NAME+" text, " +
-                AllKeys.DB_TBL_USER_EMAIL+" text, " +
+                AllKeys.DB_TBL_USER_EMAIL+" text unique, " +
                 AllKeys.DB_TBL_USER_PASSWORD+" text);");
         db.execSQL("CREATE TABLE IF NOT EXISTS "+AllKeys.DB_TBL_NOTE+"(" +
                 AllKeys.DB_TBL_NOTE_ID+" integer primary key autoincrement, " +

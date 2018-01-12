@@ -48,6 +48,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         if(body.length()>27){
             body=body.substring(0,27)+"...";
         }
+        body=body.replace("\n"," ");
         holder.tvBody.setText(body);
     }
 
@@ -79,7 +80,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
                 case R.id.btnDelete: {
                     Note note=notes.get(getPosition());
                     if(db.deleteNote(note)){
-                        Toast.makeText(inflater.getContext(),"Note deleted "+getPosition(),Toast.LENGTH_SHORT).show();
+                        Toast.makeText(inflater.getContext(),"Note \""+note.getTitle()+"\" deleted !",Toast.LENGTH_SHORT).show();
                         notes.remove(getPosition());
                         notifyItemRemoved(getPosition());
                     }
