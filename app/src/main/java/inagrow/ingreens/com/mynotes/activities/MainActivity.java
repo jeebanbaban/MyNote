@@ -2,8 +2,11 @@ package inagrow.ingreens.com.mynotes.activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.support.design.widget.BottomSheetBehavior;
+import android.support.design.widget.BottomSheetDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -33,48 +36,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         db=new DbInterface(getApplicationContext());
         setUI();
-  /*      User user=new User();
-        user.setName("Jeeban");
-        user.setEmail("jb@jb.com");
-        user.setPassword("1234");
-*/
-        /*if(db.insertUser(user)){
-            Log.e(TAG, "onCreate: User created.");
-        }
-        else{
-            Log.e(TAG, "onCreate: User creation failed.");
-        }
-
-        User u1=db.getUser("jb@jb.com","1234");
-        if(u1.getEmail().equals("jb@jb.com")){
-            Log.e(TAG, "onCreate: login success.");
-            Log.e(TAG, "onCreate: "+u1 );
-            List<Note> notes=db.getNotes(u1.getId());
-
-            for (int i=0; i<notes.size(); i++){
-                Note note=notes.get(i);
-            }
-
-            for (Note note:notes){
-                Log.e(TAG, "onCreate: "+note );
-            }
-
-
-            Note note=new Note();
-
-            note.setTitle("First Note");
-            note.setBody("My Body");
-            note.setUser_id(u1.getId());
-            db.insertNote(note);
-
-            note.setTitle("First Note 2");
-            note.setBody("My Body 2");
-            note.setUser_id(u1.getId());
-            db.insertNote(note);
-
-
-        }*/
-
     }
 
     private void setUI() {
@@ -105,8 +66,56 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             } break;
             case R.id.btnSignUp: {
-
+                signUp();
             } break;
         }
     }
+
+    private void signUp(){
+        final BottomSheetDialog bottomSheetDialog=new BottomSheetDialog(MainActivity.this);
+        View parentView=getLayoutInflater().inflate(R.layout.dialog_signup,null);
+        bottomSheetDialog.setContentView(parentView);
+        BottomSheetBehavior bottomSheetBehavior=BottomSheetBehavior.from((View)parentView.getParent());
+        bottomSheetDialog.show();
+        Button btnSignUp=parentView.findViewById(R.id.btnSignUp);
+        Button btnCancel=parentView.findViewById(R.id.btnCancel);
+        final EditText etName=parentView.findViewById(R.id.etName);
+        final EditText etEmail=parentView.findViewById(R.id.etEmail);
+        final EditText etPass1=parentView.findViewById(R.id.etPassword);
+        final EditText etPass2=parentView.findViewById(R.id.etRePassword);
+
+        btnSignUp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String name=etName.getText().toString();
+                String email=etEmail.getText().toString();
+                String pass=etPass1.getText().toString();
+                String repass=etPass2.getText().toString();
+                if(!TextUtils.isEmpty(name) && !TextUtils.isEmpty(email) && !TextUtils.isEmpty(pass) && pass.equals(repass)){
+                    User user=new User();
+                    user.setName(name);
+                    user.setEmail(email);
+                    user.setPassword(pass);
+                    if(db.insertUser(user)){
+                        bottomSheetDialog.dismiss();
+                        Toast.makeText(getApplicationContext(),"User registered !", Toast.LENGTH_SHORT).show();
+                    }
+                    else{
+                        Toast.makeText(getApplicationContext(),"Failed to register !", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                else{
+                    Toast.makeText(getApplicationContext(),"Fill data properly !", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomSheetDialog.dismiss();
+            }
+        });
+    }
+
 }
