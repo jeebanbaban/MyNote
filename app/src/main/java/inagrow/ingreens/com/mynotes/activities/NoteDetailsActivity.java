@@ -1,14 +1,10 @@
 package inagrow.ingreens.com.mynotes.activities;
 
 import android.content.SharedPreferences;
-import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.BottomSheetDialog;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
@@ -17,57 +13,53 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import inagrow.ingreens.com.mynotes.R;
-import inagrow.ingreens.com.mynotes.adapters.NoteAdapter;
 import inagrow.ingreens.com.mynotes.apis.DbInterface;
 import inagrow.ingreens.com.mynotes.models.Note;
 import inagrow.ingreens.com.mynotes.models.User;
 import inagrow.ingreens.com.mynotes.utils.AllKeys;
 import inagrow.ingreens.com.mynotes.watchers.EditTextWatcher;
 
-public class DashboardActivity extends AppCompatActivity implements View.OnClickListener {
+public class NoteDetailsActivity extends AppCompatActivity {
 
-    private static final String TAG = "DashboardActivity";
+    TextView tvTitle, tvBody;
+    Button btnEdit;
     DbInterface db;
     SharedPreferences preferences;
-    RecyclerView rvNotes;
-    FloatingActionButton fabAdd;
-    NoteAdapter adapter;
     User user;
+    Note note;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_dashboard);
-        db=new DbInterface(getApplicationContext());
+        setContentView(R.layout.activity_note_details);
+        db=new DbInterface(this);
+        preferences=getSharedPreferences(AllKeys.SP_INSTANCE_NAME,MODE_PRIVATE);
+        user=db.getUser(preferences.getInt(AllKeys.SP_USER_ID,0));
+        note=db.getNote(user.getId(),preferences.getInt(AllKeys.SP_NOTE_ID,0));
         setUI();
     }
 
     private void setUI() {
-        preferences=getSharedPreferences(AllKeys.SP_INSTANCE_NAME,MODE_PRIVATE);
-        rvNotes=findViewById(R.id.rvNotes);
-        fabAdd=findViewById(R.id.fabAdd);
-        fabAdd.setOnClickListener(this);
-        user=db.getUser(preferences.getInt(AllKeys.SP_USER_ID,0));
-        loadList();
+        tvTitle=findViewById(R.id.tvTitle);
+        tvBody=findViewById(R.id.tvBody);
+        btnEdit=findViewById(R.id.btnEdit);
+        display();
+        btnEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                editNote();
+            }
+        });
     }
 
-    private void loadList(){
-        adapter=new NoteAdapter(getApplicationContext(),db.getNotes(user.getId()));
-        rvNotes.setAdapter(adapter);
-        rvNotes.setLayoutManager(new LinearLayoutManager(this));
+    private void display(){
+        tvTitle.setText(note.getTitle());
+        tvBody.setText(note.getBody());
+
     }
 
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()){
-            case R.id.fabAdd: {
-                addNote();
-            } break;
-        }
-    }
-
-    private void addNote(){
-        final BottomSheetDialog bottomSheetDialog=new BottomSheetDialog(DashboardActivity.this);
+    private void editNote(){
+        final BottomSheetDialog bottomSheetDialog=new BottomSheetDialog(NoteDetailsActivity.this);
         View parentView=getLayoutInflater().inflate(R.layout.dialog_add_note,null);
         bottomSheetDialog.setContentView(parentView);
         bottomSheetDialog.show();
@@ -77,20 +69,22 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         final EditText etTitle=parentView.findViewById(R.id.etTitle);
         final EditText etBody=parentView.findViewById(R.id.etBody);
 
+        tvDialogTitle.setText("Edit Note");
+        etTitle.setText(note.getTitle());
+        etBody.setText(note.getBody());
+
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Note note=new Note();
                 note.setTitle(etTitle.getText().toString());
                 note.setBody(etBody.getText().toString());
-                note.setUser_id(user.getId());
                 if(validate(etTitle)) {
-                    if (db.insertNote(note)) {
+                    if (db.updateNote(note)) {
                         bottomSheetDialog.dismiss();
-                        Toast.makeText(getApplicationContext(), "Note added !", Toast.LENGTH_SHORT).show();
-                        loadList();
+                        Toast.makeText(getApplicationContext(), "Note updated !", Toast.LENGTH_SHORT).show();
+                        display();
                     } else {
-                        Toast.makeText(getApplicationContext(), "Note can't create !", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Note can't update !", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -117,4 +111,5 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         }
         return true;
     }
+
 }

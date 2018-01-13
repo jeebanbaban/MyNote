@@ -2,6 +2,8 @@ package inagrow.ingreens.com.mynotes.adapters;
 
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -14,8 +16,10 @@ import android.widget.Toast;
 import java.util.List;
 
 import inagrow.ingreens.com.mynotes.R;
+import inagrow.ingreens.com.mynotes.activities.NoteDetailsActivity;
 import inagrow.ingreens.com.mynotes.apis.DbInterface;
 import inagrow.ingreens.com.mynotes.models.Note;
+import inagrow.ingreens.com.mynotes.utils.AllKeys;
 
 /**
  * Created by root on 11/1/18.
@@ -26,11 +30,15 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
     LayoutInflater inflater;
     List<Note> notes;
     DbInterface db;
+    SharedPreferences preferences;
+    Context context;
 
     public NoteAdapter(Context context, List<Note> notes){
+        this.context=context;
         this.inflater=LayoutInflater.from(context);
         this.notes=notes;
         db=new DbInterface(context);
+        preferences=context.getSharedPreferences(AllKeys.SP_INSTANCE_NAME,Context.MODE_PRIVATE);
     }
 
     @Override
@@ -86,7 +94,11 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
                     }
                 } break;
                 case R.id.cvItem: {
-                    Toast.makeText(inflater.getContext(),"Item clicked "+getPosition(),Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(inflater.getContext(),"Item clicked "+getPosition(),Toast.LENGTH_SHORT).show();
+                    SharedPreferences.Editor editor=preferences.edit();
+                    editor.putInt(AllKeys.SP_NOTE_ID,notes.get(getPosition()).getId());
+                    editor.commit();
+                    context.startActivity(new Intent(context, NoteDetailsActivity.class));
                 } break;
             }
         }

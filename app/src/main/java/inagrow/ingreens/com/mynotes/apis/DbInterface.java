@@ -3,6 +3,8 @@ package inagrow.ingreens.com.mynotes.apis;
 import android.content.Context;
 import android.database.Cursor;
 
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +67,7 @@ public class DbInterface {
                 AllKeys.DB_TBL_NOTE_TITLE+"','"+
                 AllKeys.DB_TBL_NOTE_BODY+"',"+
                 AllKeys.DB_TBL_NOTE_USERID+") VALUES('"+
-                note.getTitle() +"','"+note.getBody()+"',"+note.getUser_id()+");");
+                URLEncoder.encode(note.getTitle()) +"','"+URLEncoder.encode(note.getBody())+"',"+note.getUser_id()+");");
     }
 
     public boolean deleteNote(Note note){
@@ -81,9 +83,30 @@ public class DbInterface {
         Cursor c=dbms.executeQuery("SELECT * FROM "+
                 AllKeys.DB_TBL_NOTE+" WHERE "+AllKeys.DB_TBL_NOTE_USERID+"="+user_id+"");
         for(c.moveToFirst(); !c.isAfterLast(); c.moveToNext()){
-            Note note=new Note(c.getInt(0),c.getString(1),c.getString(2),c.getInt(3));
+            Note note=new Note(c.getInt(0), URLDecoder.decode(c.getString(1)),URLDecoder.decode(c.getString(2)),c.getInt(3));
             notes.add(note);
         }
         return notes;
     }
+
+    public Note getNote(int user_id, int note_id){
+        Note note=new Note();
+
+        Cursor c=dbms.executeQuery("SELECT * FROM "+
+                AllKeys.DB_TBL_NOTE+" WHERE "+AllKeys.DB_TBL_NOTE_USERID+"="+user_id+" AND "+AllKeys.DB_TBL_NOTE_ID+"="+note_id);
+        for(c.moveToFirst(); !c.isAfterLast(); c.moveToNext()){
+            note=new Note(c.getInt(0), URLDecoder.decode(c.getString(1)),URLDecoder.decode(c.getString(2)),c.getInt(3));
+        }
+        return note;
+    }
+
+    public boolean updateNote(Note note) {
+        return dbms.executeNonQuery("UPDATE "+
+                AllKeys.DB_TBL_NOTE+" SET "+
+                AllKeys.DB_TBL_NOTE_TITLE+"='"+URLEncoder.encode(note.getTitle())+"', "+
+                AllKeys.DB_TBL_NOTE_BODY+"='"+URLEncoder.encode(note.getBody())+
+                "' WHERE "+AllKeys.DB_TBL_NOTE_USERID+"="+note.getUser_id()+
+                " AND "+AllKeys.DB_TBL_NOTE_ID+"="+note.getId());
+    }
+
 }
