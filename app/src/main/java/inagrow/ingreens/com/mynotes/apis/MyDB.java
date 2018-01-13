@@ -11,11 +11,11 @@ import inagrow.ingreens.com.mynotes.utils.AllKeys;
  * Created by root on 10/1/18.
  */
 
-public class MyDbms extends SQLiteOpenHelper {
+public class MyDB extends SQLiteOpenHelper {
 
     SQLiteDatabase db;
 
-    public MyDbms(Context context) {
+    public MyDB(Context context) {
         super(context, AllKeys.DB_NAME, null, AllKeys.DB_VERSION);
     }
 
