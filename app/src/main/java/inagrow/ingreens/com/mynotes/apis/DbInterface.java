@@ -2,7 +2,6 @@ package inagrow.ingreens.com.mynotes.apis;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,10 +15,10 @@ import inagrow.ingreens.com.mynotes.utils.AllKeys;
  */
 
 public class DbInterface {
-    MyDbms dbms;
+    MyDB dbms;
 
     public DbInterface(Context context) {
-        MyDbms d1 = new MyDbms(context);
+        MyDB d1 = new MyDB(context);
         this.dbms=d1;
     }
 
