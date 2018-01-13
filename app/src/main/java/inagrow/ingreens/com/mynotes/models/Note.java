@@ -1,5 +1,8 @@
 package inagrow.ingreens.com.mynotes.models;
 
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+
 /**
  * Created by root on 10/1/18.
  */
@@ -11,6 +14,10 @@ public class Note {
     int user_id;
 
     public Note() {
+        this.id = 0;
+        this.title = "";
+        this.body = "";
+        this.user_id = 0;
     }
 
     public Note(int id, String title, String body, int user_id) {
