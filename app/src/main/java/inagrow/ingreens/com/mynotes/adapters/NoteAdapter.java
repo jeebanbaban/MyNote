@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,11 +23,16 @@ import inagrow.ingreens.com.mynotes.apis.DbInterface;
 import inagrow.ingreens.com.mynotes.models.Note;
 import inagrow.ingreens.com.mynotes.utils.AllKeys;
 
+import static android.support.v7.widget.helper.ItemTouchHelper.LEFT;
+import static android.support.v7.widget.helper.ItemTouchHelper.RIGHT;
+
 /**
  * Created by root on 11/1/18.
  */
 
 public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
+
+    private static final String TAG = "NoteAdapter";
 
     LayoutInflater inflater;
     List<Note> notes;
@@ -45,6 +52,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view=inflater.inflate(R.layout.item_note,parent,false);
         ViewHolder holder=new ViewHolder(view);
+
         return holder;
     }
 
