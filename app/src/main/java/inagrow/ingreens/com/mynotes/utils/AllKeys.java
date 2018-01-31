@@ -24,8 +24,8 @@ public class AllKeys {
 
     public static final String SP_INSTANCE_NAME="sp_instance_name";
     public static final String SP_ISLOGIN="sp_islogin";
-    public static final String SP_USER_ID="sp_user_id";
     public static final String SP_EMAIL="sp_email";
-    public static final String SP_NOTE_ID="sp_email";
+    public static final String SP_TOKEN="sp_token";
+    public static final String SP_NOTE="sp_note";
 
 }

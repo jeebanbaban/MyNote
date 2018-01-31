@@ -12,12 +12,16 @@ public class Note {
     String title;
     String body;
     int user_id;
+    String created_at;
+    String updated_at;
 
     public Note() {
         this.id = 0;
         this.title = "";
         this.body = "";
         this.user_id = 0;
+        this.created_at="";
+        this.updated_at="";
     }
 
     public Note(int id, String title, String body, int user_id) {
@@ -25,6 +29,8 @@ public class Note {
         this.title = title;
         this.body = body;
         this.user_id = user_id;
+        this.created_at="";
+        this.updated_at="";
     }
 
     public int getId() {
@@ -66,6 +72,8 @@ public class Note {
                 ", title='" + title + '\'' +
                 ", body='" + body + '\'' +
                 ", user_id=" + user_id +
+                ", created_at='" + created_at + '\'' +
+                ", updated_at='" + updated_at + '\'' +
                 '}';
     }
 }

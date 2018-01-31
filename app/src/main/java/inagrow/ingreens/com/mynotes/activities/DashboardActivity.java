@@ -1,8 +1,7 @@
 package inagrow.ingreens.com.mynotes.activities;
 
+import android.app.ProgressDialog;
 import android.content.SharedPreferences;
-import android.graphics.Canvas;
-import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.BottomSheetDialog;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
@@ -10,50 +9,54 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
-import android.support.v7.widget.helper.ItemTouchHelper.Callback;
-
-import static android.support.v7.widget.helper.ItemTouchHelper.*;
 import android.text.TextUtils;
-import android.util.Log;
-import android.view.MotionEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import inagrow.ingreens.com.mynotes.R;
 import inagrow.ingreens.com.mynotes.adapters.NoteAdapter;
+import inagrow.ingreens.com.mynotes.apis.ApiDao;
+import inagrow.ingreens.com.mynotes.apis.ApiInterface;
 import inagrow.ingreens.com.mynotes.apis.DbInterface;
+import inagrow.ingreens.com.mynotes.models.CreateNoteResponse;
+import inagrow.ingreens.com.mynotes.models.DeleteUserResponse;
+import inagrow.ingreens.com.mynotes.models.LogoutResponse;
 import inagrow.ingreens.com.mynotes.models.Note;
+import inagrow.ingreens.com.mynotes.models.NoteResponse;
 import inagrow.ingreens.com.mynotes.models.User;
 import inagrow.ingreens.com.mynotes.utils.AllKeys;
 import inagrow.ingreens.com.mynotes.watchers.EditTextWatcher;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class DashboardActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "DashboardActivity";
-    DbInterface db;
+
     SharedPreferences preferences;
     RecyclerView rvNotes;
     FloatingActionButton fabAdd;
     NoteAdapter adapter;
-    User user;
+    String token;
+    List<Note> notes;
+
+    ApiInterface apis;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
-        db=new DbInterface(getApplicationContext());
+        apis= ApiDao.getApiDao();
         setUI();
-    }
-
-    enum ButtonsState {
-        GONE,
-        LEFT_VISIBLE,
-        RIGHT_VISIBLE
     }
 
     private void setUI() {
@@ -61,77 +64,41 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         rvNotes=findViewById(R.id.rvNotes);
         fabAdd=findViewById(R.id.fabAdd);
         fabAdd.setOnClickListener(this);
-        user=db.getUser(preferences.getInt(AllKeys.SP_USER_ID,0));
-
-        ItemTouchHelper touchHelper=new ItemTouchHelper(new ItemTouchHelper.Callback() {
-
-            private boolean swipeBack = false;
-            private ButtonsState buttonShowedState = ButtonsState.GONE;
-            private static final float buttonWidth = 300;
-
-            @Override
-            public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-                return makeMovementFlags(0, LEFT|RIGHT);
-            }
-
-            @Override
-            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                Log.e(TAG, "onSwiped: Direction => "+direction );
-            }
-
-            @Override
-            public int convertToAbsoluteDirection(int flags, int layoutDirection) {
-                if (swipeBack) {
-                    swipeBack = false;
-                    return 0;
-                }
-                return super.convertToAbsoluteDirection(flags, layoutDirection);
-            }
-
-            @Override
-            public void onChildDraw(Canvas c,
-                                    RecyclerView recyclerView,
-                                    RecyclerView.ViewHolder viewHolder,
-                                    float dX, float dY,
-                                    int actionState, boolean isCurrentlyActive) {
-
-                if (actionState == ACTION_STATE_SWIPE) {
-                    setTouchListener(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-                }
-                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-            }
-
-            private void setTouchListener(Canvas c,
-                                          RecyclerView recyclerView,
-                                          RecyclerView.ViewHolder viewHolder,
-                                          float dX, float dY,
-                                          int actionState, boolean isCurrentlyActive) {
-
-                recyclerView.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        swipeBack = event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP;
-                        return false;
-                    }
-                });
-            }
-
-        });
-
-        touchHelper.attachToRecyclerView(rvNotes);
-
+        notes=new ArrayList<>();
+        token=preferences.getString(AllKeys.SP_TOKEN,"");
         loadList();
     }
 
     private void loadList(){
-        adapter=new NoteAdapter(getApplicationContext(),db.getNotes(user.getId()));
-        rvNotes.setAdapter(adapter);
-        rvNotes.setLayoutManager(new LinearLayoutManager(this));
+        final ProgressDialog dialog=new ProgressDialog(this);
+        dialog.setTitle("Note");
+        dialog.setMessage("Getting notes...");
+        dialog.show();
+        Call<NoteResponse> call=apis.getNotes(token);
+        call.enqueue(new retrofit2.Callback<NoteResponse>() {
+            @Override
+            public void onResponse(Call<NoteResponse> call, Response<NoteResponse> response) {
+                NoteResponse noteResponse=response.body();
+                if (null==noteResponse){
+                    preferences.edit().remove(AllKeys.SP_ISLOGIN).commit();
+                    finish();
+                }
+                if(noteResponse.isStatus()){
+                    dialog.dismiss();
+                    notes=noteResponse.getNotes();
+                    adapter=new NoteAdapter(getApplicationContext(),notes,DashboardActivity.this);
+                    rvNotes.setAdapter(adapter);
+                    rvNotes.setLayoutManager(new LinearLayoutManager(DashboardActivity.this));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<NoteResponse> call, Throwable t) {
+                dialog.dismiss();
+            }
+        });
+
+
     }
 
     @Override
@@ -157,19 +124,26 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Note note=new Note();
-                note.setTitle(etTitle.getText().toString());
-                note.setBody(etBody.getText().toString());
-                note.setUser_id(user.getId());
-                if(validate(etTitle)) {
-                    if (db.insertNote(note)) {
+                final ProgressDialog dialog=new ProgressDialog(DashboardActivity.this);
+                dialog.setTitle("Create Note");
+                dialog.setMessage("Please wait...");
+                dialog.show();
+                Call<CreateNoteResponse> call=apis.createNote(token,etTitle.getText().toString(),etBody.getText().toString());
+                call.enqueue(new retrofit2.Callback<CreateNoteResponse>() {
+                    @Override
+                    public void onResponse(Call<CreateNoteResponse> call, Response<CreateNoteResponse> response) {
+                        dialog.dismiss();
                         bottomSheetDialog.dismiss();
                         Toast.makeText(getApplicationContext(), "Note added !", Toast.LENGTH_SHORT).show();
                         loadList();
-                    } else {
-                        Toast.makeText(getApplicationContext(), "Note can't create !", Toast.LENGTH_SHORT).show();
                     }
-                }
+
+                    @Override
+                    public void onFailure(Call<CreateNoteResponse> call, Throwable t) {
+                        Toast.makeText(getApplicationContext(), "Note can't create !", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    }
+                });
             }
         });
 
@@ -193,5 +167,74 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
             return false;
         }
         return true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadList();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.menuLogout:{
+                final ProgressDialog dialog=new ProgressDialog(DashboardActivity.this);
+                dialog.setTitle("Logout");
+                dialog.setMessage("Please wait...");
+                dialog.show();
+                Call<LogoutResponse> call=apis.logout(token);
+                call.enqueue(new Callback<LogoutResponse>() {
+                    @Override
+                    public void onResponse(Call<LogoutResponse> call, Response<LogoutResponse> response) {
+                        LogoutResponse logoutResponse=response.body();
+                        if (logoutResponse.isStatus()){
+                            Toast.makeText(getApplicationContext(),"Logout successfully !",Toast.LENGTH_SHORT).show();
+                            preferences.edit().remove(AllKeys.SP_ISLOGIN).commit();
+                            finish();
+                        }
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void onFailure(Call<LogoutResponse> call, Throwable t) {
+                        Toast.makeText(getApplicationContext(),"Logout failed !",Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    }
+                });
+            } break;
+            case R.id.menuDelete:{
+                final ProgressDialog dialog=new ProgressDialog(DashboardActivity.this);
+                dialog.setTitle("User");
+                dialog.setMessage("User deleting...");
+                dialog.show();
+                Call<DeleteUserResponse> call=apis.deleteUser(token);
+                call.enqueue(new Callback<DeleteUserResponse>() {
+                    @Override
+                    public void onResponse(Call<DeleteUserResponse> call, Response<DeleteUserResponse> response) {
+                        DeleteUserResponse deleteUserResponse=response.body();
+                        if(deleteUserResponse.isStatus()){
+                            Toast.makeText(getApplicationContext(),deleteUserResponse.getMessage(),Toast.LENGTH_SHORT).show();
+                            preferences.edit().remove(AllKeys.SP_ISLOGIN).commit();
+                            finish();
+                        }
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void onFailure(Call<DeleteUserResponse> call, Throwable t) {
+                        Toast.makeText(getApplicationContext(),"Logout failed !",Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    }
+                });
+            } break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
