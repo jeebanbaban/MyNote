@@ -28,6 +28,8 @@ import java.util.Map;
 
 import inagrow.ingreens.com.mynotes.R;
 import inagrow.ingreens.com.mynotes.adapters.NoteAdapter;
+import inagrow.ingreens.com.mynotes.apis.ApiDao;
+import inagrow.ingreens.com.mynotes.apis.ApiInterface;
 import inagrow.ingreens.com.mynotes.apis.DbInterface;
 import inagrow.ingreens.com.mynotes.models.Note;
 import inagrow.ingreens.com.mynotes.models.NoteList;
@@ -37,6 +39,8 @@ import inagrow.ingreens.com.mynotes.models.User;
 import inagrow.ingreens.com.mynotes.utils.AllKeys;
 import inagrow.ingreens.com.mynotes.utils.AllUrls;
 import inagrow.ingreens.com.mynotes.watchers.EditTextWatcher;
+import retrofit2.Call;
+import retrofit2.Callback;
 
 public class NoteDetailsActivity extends AppCompatActivity {
     private static final String TAG = "NoteDetailsActivity";
@@ -47,6 +51,7 @@ public class NoteDetailsActivity extends AppCompatActivity {
     User user;
     NoteList note;
     List<NoteList> notes;
+    ApiInterface apiInterface;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +61,7 @@ public class NoteDetailsActivity extends AppCompatActivity {
 //        user=db.getUser(preferences.getInt(AllKeys.SP_USER_ID,0));
 //        note=db.getNote(user.getId(),preferences.getInt(AllKeys.SP_NOTE_ID,0));
         note=new Gson().fromJson(preferences.getString("note",""),NoteList.class);
+        apiInterface= ApiDao.getApiDao();
         setUI();
     }
 
@@ -112,15 +118,6 @@ public class NoteDetailsActivity extends AppCompatActivity {
                     System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
                     bottomSheetDialog.dismiss();
                     display();
-
-
-//                    if (db.updateNote(note)) {
-//                        bottomSheetDialog.dismiss();
-//                        Toast.makeText(getApplicationContext(), "Note updated !", Toast.LENGTH_SHORT).show();
-//                        display();
-//                    } else {
-//                        Toast.makeText(getApplicationContext(), "Note can't update !", Toast.LENGTH_SHORT).show();
-//                    }
                 }
             }
         });
@@ -159,44 +156,23 @@ public class NoteDetailsActivity extends AppCompatActivity {
 
     private void updateNote(final String token,final String id,final String title,final String body){
 
-        RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-        StringRequest request=new StringRequest(Request.Method.POST, AllUrls.SERVER+"api/update.json",
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
 
-                        UpdateNoteModel updateNoteModel=new Gson().fromJson(response,UpdateNoteModel.class);
-                        System.out.println("@@@@@@@@@@@@@@@@@@@@@");
-                        System.out.println("response======="+response);
-                        System.out.println("@@@@@@@@@@@@@@@@@@@@@");
-
-                        if (!(updateNoteModel==null)){
-
-                            System.out.println("####################");
-                            System.out.println("updateNoteModel status============="+updateNoteModel.isStatus());
-                            System.out.println("####################");
-                        }
-
-
-                    }
-                }, new Response.ErrorListener() {
+        Call<UpdateNoteModel> call=apiInterface.updateNote(token,id,title,body);
+        call.enqueue(new Callback<UpdateNoteModel>() {
             @Override
-            public void onErrorResponse(VolleyError error) {
+            public void onResponse(Call<UpdateNoteModel> call, retrofit2.Response<UpdateNoteModel> response) {
+                UpdateNoteModel updateNoteModel=response.body();
+                if (updateNoteModel.isStatus()){
+                    Toast.makeText(NoteDetailsActivity.this, "note updated", Toast.LENGTH_SHORT).show();
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<UpdateNoteModel> call, Throwable t) {
 
             }
-        }){
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String,String> params=new HashMap<>();
-                params.put("token",token);
-                params.put("id", id);
-                params.put("title",title);
-                params.put("body",body);
-                return params;
-            }
-        };
-        queue.getCache().clear();
-        queue.add(request);
+        });
     }
 
 

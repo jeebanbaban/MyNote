@@ -14,4 +14,11 @@ public class NoteModel {
     public void setStatus(boolean status) {
         this.status = status;
     }
+
+    @Override
+    public String toString() {
+        return "NoteModel{" +
+                "status=" + status +
+                '}';
+    }
 }

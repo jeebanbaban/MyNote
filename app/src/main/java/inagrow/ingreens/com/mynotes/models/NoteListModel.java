@@ -26,4 +26,12 @@ public class NoteListModel {
     public void setNotes(List<NoteList> noteLists) {
         this.notes = notes;
     }
+
+    @Override
+    public String toString() {
+        return "NoteListModel{" +
+                "status=" + status +
+                ", notes=" + notes +
+                '}';
+    }
 }
